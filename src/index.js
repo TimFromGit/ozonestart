@@ -50,4 +50,5 @@ function showData() {
     countGoods.textContent = cardsCart.length;
     console.log(cardsCart.length);
 }
-//end work with products in cart
+
+//end work with products in cart t
