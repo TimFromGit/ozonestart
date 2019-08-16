@@ -100,35 +100,29 @@ function actionPage(){
         max = document.getElementById('max'),
         search = document.querySelector('.search-wrapper_input'),
         searchBtn = document.querySelector('.search-btn');
-        //отслеживаем клик на чекбоксе
-        discountCheckbox.addEventListener('click',() => {
-            //просматриваем карты, и если стоит акция - удаляем
-            cards.forEach((card) => {
-                if (discountCheckbox.checked){
-                    if (!card.querySelector('.card-sale')){
-                        card.parentNode.style.display = 'none';
-                    } 
-                } else {
-                    card.parentNode.style.display = '';
-                }
-            });
-        });
-        //делаем фильтр по прайсу
-        function filterPrice(){
-            cards.forEach((card) => {
+        
+        //запуск фильтра при клике по чекбоксу акции
+        discountCheckbox.addEventListener('click',filter);
+        //запуск фильтра по цене при изменении полей цены
+        max.addEventListener('change', filter);
+        min.addEventListener('change', filter);
+
+        //делаем функцию фильтр 
+        function filter (){
+            cards.forEach ((card) =>{
                 const cardPrice = card.querySelector('.card-price');
                 const price = parseFloat(cardPrice.textContent);
-                
-                if ((min.value && price < min.value) || (max.value && price > max.value)){
+                const discount = card.querySelector('.card-sale');
+
+                if ((min.value && price < min.value) || (max.value && price > max.value)){ //фильтр по цене
+                    card.parentNode.style.display = 'none';
+                } else if (discountCheckbox.checked && !discount){ //фильтр по акции
                     card.parentNode.style.display = 'none';
                 } else {
                     card.parentNode.style.display = '';
                 }
             });
         }
-
-        max.addEventListener('change', filterPrice);
-        min.addEventListener('change', filterPrice);
 
         //работаем с поиском
         searchBtn.addEventListener('click', () => {
@@ -145,9 +139,29 @@ function actionPage(){
 
         });
 }
-
 //end фильтр акции
 
+//получение данных с сервера
+function getData(){
+    const goodsWrapper = document.querySelector('.goods');
+    fetch('../db/db.json')
+        .then((response)=> {
+            if (response.ok){
+                return response.json();
+            } else {
+                throw new Error ('Данные не быи получины, ошибка: ' + response.status);
+            }
+        })
+        .then(data => console.log(data))
+        .catch(err => {
+            console.warn(err);
+            goodsWrapper.innerHTML = '<div style="color: red; font-size: 30px">Упс что-то пошло не так!</div>'
+        });
+
+}
+//end получение данных с сервера
+
+getData();
 toggleCheckbox();
 toggleCart();
 addCart();
