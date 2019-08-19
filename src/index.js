@@ -144,25 +144,95 @@ function actionPage(){
 //получение данных с сервера
 function getData(){
     const goodsWrapper = document.querySelector('.goods');
-    fetch('../db/db.json')
+    return fetch('../db/db.json')
         .then((response)=> {
-            if (response.ok){
+            if (response.ok){                   //обрабатываем статус получения
                 return response.json();
             } else {
-                throw new Error ('Данные не быи получины, ошибка: ' + response.status);
+                throw new Error ('Данные не были получены, ошибка: ' + response.status);
             }
         })
-        .then(data => console.log(data))
+        //.then(data => renderCards(data))
+        .then((data) => {
+            return data;
+        })     //обрабатываем данные с сервера функцией вывода товара с сервера
         .catch(err => {
             console.warn(err);
             goodsWrapper.innerHTML = '<div style="color: red; font-size: 30px">Упс что-то пошло не так!</div>'
         });
 
 }
+
+//выводим карточки товара с сервера
+function renderCards(data){
+    const goodsWrapper = document.querySelector('.goods'); //получаем родитель товров/обертка
+    data.goods.forEach((good) => { // перебираем данные о товарах с сервера
+        const card = document.createElement('div'); //создаем див для каждой карточки
+        card.className = 'col-12 col-md-6 col-lg-4 col-xl-3'; //присваиваем диву классы верстки
+        //помещаем верстку в карточку
+        card.innerHTML = `
+            <div class="card" data-category="${good.category}">
+                ${good.sale ? '<div class="card-sale">🔥Hot Sale🔥</div>' : ''}
+				<div class="card-img-wrapper">
+                    <span class="card-img-top"
+    					style="background-image: url('${good.img}')"></span>
+				</div>
+				<div class="card-body justify-content-between">
+					<div class="card-price" style="${good.sale ? 'color:red' : ''}">${good.price} ₽</div>
+                    <h5 class="card-title">${good.title}</h5>
+                    <button class="btn btn-primary">В корзину</button>
+				</div>
+		    </div>
+        `;
+        goodsWrapper.appendChild(card); //помещаем каждую карточку товаров в обертку
+    })
+}
 //end получение данных с сервера
 
-getData();
-toggleCheckbox();
-toggleCart();
-addCart();
-actionPage();
+//каталог
+function renderCatalog(){
+    const cards = document.querySelectorAll('.goods .card');
+    const catalogList = document.querySelector('.catalog-list');
+    const catalogWrapper = document.querySelector('.catalog')
+    const catalogBtn = document.querySelector('.catalog-button');
+    const categories = new Set(); //создаем коллекцию, куда будем добавлять категории товаров
+
+    cards.forEach((card) => {
+        categories.add(card.dataset.category); //перебираем товары и добавляем их в колекцию
+    });
+
+    //добавляем категории из нашей коллекции в меню каталог
+    categories.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        catalogList.appendChild(li);
+    });
+    //открытие/закрытие каталога
+    catalogBtn.addEventListener('click', () => {
+        if (catalogWrapper.style.display){
+            catalogWrapper.style.display = '';
+        } else {
+            catalogWrapper.style.display = 'block';
+        }
+        if (event.target.tagName === 'LI'){
+            cards.forEach((card) => {
+                if (card.dataset.category === event.target.textContent){
+                    card.parentNode.style.display = '';
+                } else {
+                    card.parentNode.style.display = 'none';
+                }
+            });
+        }
+    });
+}
+//end каталог
+
+getData().then((data) => {
+    renderCards(data);
+    toggleCheckbox();
+    toggleCart();
+    addCart();
+    actionPage();
+    renderCatalog();
+});
+
